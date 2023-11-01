@@ -1,7 +1,9 @@
 package lk.ijse.hotelservice.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import lk.ijse.hotelservice.dto.HotelDTO;
+import lk.ijse.hotelservice.entity.Role;
+import lk.ijse.hotelservice.exception.UnauthorizedException;
 import lk.ijse.hotelservice.service.custom.HotelService;
 import lk.ijse.hotelservice.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +29,13 @@ public class HotelController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil saveHotel(@RequestParam("file") MultipartFile file, @RequestParam String hotel) throws IOException {
+    public ResponseUtil saveHotel(@RequestPart("file") MultipartFile file,
+                                  @Valid @RequestPart("hotel") HotelDTO hotelDTO,
+                                  @RequestHeader("X-ROLE") Role role) throws IOException {
 
-        HotelDTO hotelDTO = new ObjectMapper().readValue(hotel, HotelDTO.class);
+        if (!role.equals(Role.ADMIN_HOTEL))
+            throw new UnauthorizedException("Un authorized access to application");
+
         return ResponseUtil
                 .builder()
                 .code(200)
@@ -40,9 +46,13 @@ public class HotelController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil updateHotel(@RequestParam("file") MultipartFile file, @RequestParam String hotel) throws IOException {
+    public ResponseUtil updateHotel(@RequestPart("file") MultipartFile file,
+                                    @Valid @RequestPart("hotel") HotelDTO hotelDTO,
+                                    @RequestHeader("X-ROLE") Role role) throws IOException {
 
-        HotelDTO hotelDTO = new ObjectMapper().readValue(hotel, HotelDTO.class);
+        if (!role.equals(Role.ADMIN_HOTEL))
+            throw new UnauthorizedException("Un authorized access to application");
+
         return ResponseUtil
                 .builder()
                 .code(200)
@@ -52,7 +62,10 @@ public class HotelController {
     }
 
     @DeleteMapping(params = {"hotelId"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil deleteUser(@RequestParam Integer hotelId){
+    public ResponseUtil deleteUser(@RequestParam Integer hotelId, @RequestHeader("X-ROLE") Role role){
+
+        if (!role.equals(Role.ADMIN_HOTEL))
+            throw new UnauthorizedException("Un authorized access to application");
 
         hotelService.deleteHotel(hotelId);
         return ResponseUtil
@@ -74,7 +87,8 @@ public class HotelController {
                 .build();
     }
     @GetMapping(value = "/getAll", params = {"page", "count"}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseUtil getHotelPageable(@RequestParam Integer page,@RequestParam Integer count){
+    public ResponseUtil getHotelPageable(@RequestParam Integer page,
+                                         @RequestParam Integer count){
 
         return ResponseUtil
                 .builder()
