@@ -2,8 +2,6 @@ package lk.ijse.hotelservice.api;
 
 import jakarta.validation.Valid;
 import lk.ijse.hotelservice.dto.HotelDTO;
-import lk.ijse.hotelservice.entity.Role;
-import lk.ijse.hotelservice.exception.UnauthorizedException;
 import lk.ijse.hotelservice.service.custom.HotelService;
 import lk.ijse.hotelservice.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +28,7 @@ public class HotelController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseUtil saveHotel(@RequestPart("file") MultipartFile file,
-                                  @Valid @RequestPart("hotel") HotelDTO hotelDTO,
-                                  @RequestHeader("X-ROLE") Role role) throws IOException {
-
-        if (!role.equals(Role.ADMIN_HOTEL))
-            throw new UnauthorizedException("Un authorized access to application");
+                                  @Valid @RequestPart("hotel") HotelDTO hotelDTO) throws IOException {
 
         return ResponseUtil
                 .builder()
@@ -47,11 +41,8 @@ public class HotelController {
     @ResponseStatus(HttpStatus.OK)
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseUtil updateHotel(@RequestPart("file") MultipartFile file,
-                                    @Valid @RequestPart("hotel") HotelDTO hotelDTO,
-                                    @RequestHeader("X-ROLE") Role role) throws IOException {
+                                    @Valid @RequestPart("hotel") HotelDTO hotelDTO) throws IOException {
 
-        if (!role.equals(Role.ADMIN_HOTEL))
-            throw new UnauthorizedException("Un authorized access to application");
 
         return ResponseUtil
                 .builder()
@@ -62,10 +53,7 @@ public class HotelController {
     }
 
     @DeleteMapping(params = {"hotelId"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil deleteUser(@RequestParam Integer hotelId, @RequestHeader("X-ROLE") Role role){
-
-        if (!role.equals(Role.ADMIN_HOTEL))
-            throw new UnauthorizedException("Un authorized access to application");
+    public ResponseUtil deleteUser(@RequestParam Integer hotelId){
 
         hotelService.deleteHotel(hotelId);
         return ResponseUtil
